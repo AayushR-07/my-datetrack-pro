@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DateTrack Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0e0e12;
+      --bg2:#16161d;
+      --surface:#1c1c26;
+      --surface2:#22222f;
+      --border:#2e2e3f;
+      --border2:#3a3a50;
+      --ink:#f0ece4;
+      --ink2:#b0acaa;
+      --muted:#6a6680;
+      --accent:#7c6af7;
+      --accent2:#f06a9b;
+      --green:#3ecf8e;
+      --yellow:#f5c842;
+      --red:#f06a6a;
+      --radius:14px;
+      --shadow:0 2px 16px rgba(0,0,0,.35);
+      --shadow-lg:0 12px 56px rgba(0,0,0,.55);
+    }
+    body{
+      font-family:'Syne',sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 0%,rgba(124,106,247,.12) 0%,transparent 50%),
+        radial-gradient(ellipse at 80% 100%,rgba(240,106,155,.08) 0%,transparent 50%);
+    }
+
+    /* ── PAGES ─────────────────────────────────── */
+    .page{display:none;}
+    .page.show{display:block;animation:fadeUp .4s ease;}
+    #authPage.show{display:flex;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── SETUP BANNER ─────────────────────────── */
+    .setup-banner{
+      background:linear-gradient(135deg,#1a1a2e,#16213e);
+      border:1px solid rgba(124,106,247,.3);
+      border-radius:16px;
+      padding:20px 24px;
+      margin-bottom:20px;
+      max-width:460px;
+      width:100%;
+    }
+    .setup-banner h3{
+      font-size:.95rem;font-weight:700;
+      color:var(--accent);
+      margin-bottom:10px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .setup-banner ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+    .setup-banner li{font-size:.82rem;color:var(--ink2);line-height:1.5;}
+    .setup-banner a{color:var(--accent);text-decoration:none;}
+    .setup-banner a:hover{text-decoration:underline;}
+    .setup-banner code{
+      background:rgba(124,106,247,.15);
+      color:var(--accent);
+      padding:1px 6px;border-radius:4px;
+      font-family:'JetBrains Mono',monospace;font-size:.82em;
+    }
+    .setup-banner .inp-row{display:flex;gap:8px;margin-top:12px;}
+    .setup-banner input{
+      flex:1;
+      background:var(--surface2);
+      border:1.5px solid var(--border2);
+      border-radius:9px;
+      padding:10px 13px;
+      font-family:'JetBrains Mono',monospace;
+      font-size:.82rem;
+      color:var(--ink);
+      outline:none;
+      transition:border-color .2s;
+    }
+    .setup-banner input:focus{border-color:var(--accent);}
+    .setup-banner input::placeholder{color:var(--muted);}
+    .btn-save-key{
+      background:var(--accent);color:#fff;border:none;
+      border-radius:9px;padding:10px 18px;
+      font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;
+      cursor:pointer;white-space:nowrap;
+      transition:opacity .2s,transform .15s;
+    }
+    .btn-save-key:hover{opacity:.85;transform:translateY(-1px);}
+    .key-saved{
+      display:none;margin-top:8px;font-size:.78rem;
+      color:var(--green);font-weight:600;
+    }
+
+    /* ── AUTH PAGE ─────────────────────────────── */
+    #authPage{
+      min-height:100vh;
+      align-items:center;justify-content:center;
+      flex-direction:column;gap:16px;padding:20px;
+    }
+    .auth-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow-lg);
+      padding:44px 40px 38px;
+      width:100%;max-width:460px;
+      position:relative;overflow:hidden;
+    }
+    .auth-card::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+    }
+    .auth-logo{font-size:2rem;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
+    .auth-logo .t{color:var(--accent);}
+    .auth-sub{font-family:'Lora',serif;font-style:italic;font-size:.83rem;color:var(--muted);margin-bottom:30px;}
+
+    .tab-row{display:flex;background:var(--bg2);border-radius:11px;padding:4px;margin-bottom:26px;}
+    .tab-btn{
+      flex:1;border:none;background:none;
+      padding:10px;border-radius:8px;
+      font-family:'Syne',sans-serif;font-size:.84rem;font-weight:600;
+      color:var(--muted);cursor:pointer;transition:all .2s;
+    }
+    .tab-btn.active{background:var(--surface2);color:var(--ink);box-shadow:0 1px 8px rgba(0,0,0,.3);}
+
+    .af{margin-bottom:15px;}
+    .af label{display:block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px;}
+    .af input{
+      width:100%;background:var(--surface2);border:1.5px solid var(--border);
+      border-radius:10px;padding:12px 14px;
+      font-family:'Syne',sans-serif;font-size:.92rem;color:var(--ink);
+      outline:none;transition:border-color .2s,box-shadow .2s;
+    }
+    .af input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.15);}
+    .af input::placeholder{color:var(--muted);}
+
+    .strength-bar{height:3px;background:var(--bg2);border-radius:2px;margin-top:6px;overflow:hidden;}
+    .strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;}
+
+    .btn-primary{
+      width:100%;background:var(--accent);color:#fff;
+      border:none;border-radius:10px;padding:13px;
+      font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;
+      cursor:pointer;margin-top:8px;letter-spacing:.3px;
+      transition:opacity .2s,transform .15s,box-shadow .2s;
+    }
+    .btn-primary:hover:not(:disabled){opacity:.88;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,106,247,.4);}
+    .btn-primary:disabled{background:var(--muted);cursor:not-allowed;transform:none;}
+
+    .auth-msg{margin-top:14px;padding:10px 14px;border-radius:8px;font-size:.83rem;font-weight:600;text-align:center;}
+    .auth-msg.error{background:rgba(240,106,106,.12);color:var(--red);border:1px solid rgba(240,106,106,.3);}
+    .auth-msg.success{background:rgba(62,207,142,.1);color:var(--green);border:1px solid rgba(62,207,142,.3);}
+    .auth-msg.info{background:rgba(124,106,247,.1);color:var(--accent);border:1px solid rgba(124,106,247,.3);}
+
+    /* ── APP PAGE ──────────────────────────────── */
+    #appPage{min-height:100vh;}
+    .topbar{
+      background:var(--surface);border-bottom:1px solid var(--border);
+      padding:0 28px;height:62px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:100;
+      box-shadow:0 1px 12px rgba(0,0,0,.3);
+    }
+    .topbar-logo{font-weight:800;font-size:1.2rem;letter-spacing:-.5px;}
+    .topbar-logo .t{color:var(--accent);}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .user-chip{
+      display:flex;align-items:center;gap:8px;
+      background:var(--surface2);border:1px solid var(--border2);
+      border-radius:20px;padding:5px 14px 5px 7px;
+      font-size:.82rem;font-weight:600;color:var(--ink2);
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:50%;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-size:.75rem;font-weight:800;
+    }
+    .btn-logout{
+      background:none;border:1.5px solid var(--border2);color:var(--ink2);
+      padding:7px 14px;border-radius:8px;cursor:pointer;
+      font-family:'Syne',sans-serif;font-size:.78rem;font-weight:600;
+      transition:all .2s;
+    }
+    .btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+    .app-body{max-width:920px;margin:0 auto;padding:36px 20px 80px;}
+
+    .welcome-banner{
+      background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
+      border:1px solid var(--border);
+      border-radius:18px;padding:28px 32px;margin-bottom:28px;
+      display:flex;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;gap:16px;
+      position:relative;overflow:hidden;
+    }
+    .welcome-banner::before{
+      content:'';position:absolute;top:-40px;right:-40px;
+      width:180px;height:180px;border-radius:50%;
+      background:radial-gradient(circle,rgba(124,106,247,.12) 0%,transparent 70%);
+    }
+    .wb-left h2{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;}
+    .wb-left p{font-family:'Lora',serif;font-style:italic;font-size:.84rem;color:var(--muted);}
+    .today-pill{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:12px;padding:12px 20px;text-align:right;
+    }
+    .today-pill .tl{font-size:.66rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+    .today-pill .td{font-family:'Lora',serif;font-size:1rem;color:var(--ink);margin-top:2px;}
+
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+    .stat{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:18px 20px;
+      transition:border-color .2s;
+    }
+    .stat:hover{border-color:var(--accent);}
+    .stat .n{font-size:2rem;font-weight:800;color:var(--accent);line-height:1;}
+    .stat .l{font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:5px;}
+
+    .form-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:28px;margin-bottom:24px;
+      box-shadow:var(--shadow);
+    }
+    .form-card h3{font-size:1rem;font-weight:700;margin-bottom:20px;}
+    .form-card h3 em{color:var(--accent);font-style:normal;}
+    .fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    .fg-full{grid-column:1/-1;}
+    .fg2{display:flex;flex-direction:column;gap:6px;}
+    .fg2 label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);}
+    .fg2 input,.fg2 select,.fg2 textarea{
+      background:var(--surface2);border:1.5px solid var(--border);
+      border-radius:9px;padding:11px 13px;
+      font-family:'Syne',sans-serif;font-size:.88rem;color:var(--ink);
+      outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+    }
+    .fg2 select option{background:var(--surface2);}
+    .fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.12);}
+    .fg2 input::placeholder,.fg2 textarea::placeholder{color:var(--muted);}
+    .fg2 textarea{resize:vertical;min-height:64px;}
+    .color-row{display:flex;gap:9px;flex-wrap:wrap;padding-top:2px;}
+    .cdot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s,border-color .15s;}
+    .cdot:hover{transform:scale(1.15);}
+    .cdot.active{border-color:#fff;transform:scale(1.1);}
+    .btn-submit{
+      background:var(--accent);color:#fff;border:none;border-radius:9px;
+      padding:12px 28px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;
+      cursor:pointer;transition:opacity .2s,transform .15s;
+    }
+    .btn-submit:hover:not(:disabled){opacity:.85;transform:translateY(-1px);}
+    .btn-submit:disabled{background:var(--muted);cursor:not-allowed;transform:none;}
+
+    .toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+    .toolbar input,.toolbar select{
+      background:var(--surface);border:1.5px solid var(--border);
+      border-radius:9px;padding:10px 13px;
+      font-family:'Syne',sans-serif;font-size:.85rem;color:var(--ink);
+      outline:none;transition:border-color .2s;
+    }
+    .toolbar input{flex:1;min-width:140px;}
+    .toolbar input::placeholder{color:var(--muted);}
+    .toolbar select option{background:var(--surface);}
+    .toolbar input:focus,.toolbar select:focus{border-color:var(--accent);}
+    .sort-toggle{
+      background:var(--surface);border:1.5px solid var(--border);
+      border-radius:9px;padding:10px 14px;
+      font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;
+      cursor:pointer;color:var(--ink2);white-space:nowrap;transition:border-color .2s,color .2s;
+    }
+    .sort-toggle:hover{border-color:var(--accent);color:var(--ink);}
+
+    .section-hd{font-size:1.05rem;font-weight:700;margin-bottom:14px;color:var(--ink2);}
+    .events{display:flex;flex-direction:column;gap:10px;}
+
+    .ev-card{
+      background:var(--surface);border:1.5px solid var(--border);
+      border-radius:var(--radius);padding:18px 20px;
+      display:grid;grid-template-columns:58px 1fr auto auto;gap:16px;align-items:center;
+      transition:border-color .25s,transform .2s,box-shadow .2s;
+      animation:fadeUp .3s ease;position:relative;overflow:hidden;
+    }
+    .ev-card::after{
+      content:'';position:absolute;left:0;top:0;bottom:0;
+      width:4px;background:var(--ec,var(--accent));border-radius:0 3px 3px 0;
+    }
+    .ev-card:hover{border-color:var(--ec,var(--accent));transform:translateX(4px);box-shadow:var(--shadow);}
+
+    .ev-date-box{
+      background:var(--surface2);border-radius:10px;
+      text-align:center;padding:9px 6px;border:1px solid var(--border);
+    }
+    .ev-day{font-size:1.6rem;font-weight:800;color:var(--ec,var(--accent));line-height:1;}
+    .ev-mon{font-size:.64rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:1px;}
+    .ev-title{font-weight:700;font-size:.97rem;margin-bottom:5px;color:var(--ink);}
+    .ev-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .ev-cat{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;background:var(--surface2);color:var(--muted);padding:3px 9px;border-radius:20px;border:1px solid var(--border);}
+    .ev-year{font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+    .ev-note{font-size:.8rem;color:var(--muted);margin-top:5px;font-family:'Lora',serif;font-style:italic;}
+    .ev-cd{text-align:center;min-width:68px;}
+    .ev-cd-num{font-size:1.5rem;font-weight:800;line-height:1;}
+    .ev-cd-num.past{color:var(--muted);}
+    .ev-cd-num.today{color:var(--green);}
+    .ev-cd-num.upcoming{color:var(--ink);}
+    .ev-cd-sub{font-size:.65rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:3px;}
+    .btn-del{
+      background:none;border:1.5px solid transparent;color:var(--muted);
+      cursor:pointer;border-radius:8px;padding:7px 9px;font-size:.85rem;
+      transition:all .15s;
+    }
+    .btn-del:hover{color:var(--red);border-color:var(--red);background:rgba(240,106,106,.08);}
+
+    .empty{text-align:center;padding:56px 20px;color:var(--muted);}
+    .empty .ei{font-size:2.8rem;margin-bottom:12px;}
+    .empty p{font-family:'Lora',serif;font-style:italic;font-size:.92rem;}
+
+    .spinner-wrap{text-align:center;padding:40px;}
+    .spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    #toast{
+      position:fixed;bottom:28px;left:50%;
+      transform:translateX(-50%) translateY(90px);
+      background:var(--surface2);color:var(--ink);
+      border:1px solid var(--border2);
+      padding:12px 24px;border-radius:10px;
+      font-size:.85rem;font-weight:600;
+      box-shadow:var(--shadow-lg);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+      z-index:9999;white-space:nowrap;
+    }
+    #toast.show{transform:translateX(-50%) translateY(0);}
+    #toast.ok::before{content:'✓  ';}
+    #toast.err::before{content:'✕  ';color:var(--red);}
+
+    @media(max-width:580px){
+      .fg-grid{grid-template-columns:1fr;}
+      .ev-card{grid-template-columns:50px 1fr auto;}
+      .ev-cd{display:none;}
+      .auth-card{padding:32px 22px;}
+      .welcome-banner{padding:22px 18px;}
+      .topbar{padding:0 16px;}
+      .stats .n{font-size:1.6rem;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     AUTH PAGE
+═══════════════════════════════════════════════ -->
+<div id="authPage" class="page show">
+
+  <!-- Setup Banner -->
+  <div class="setup-banner" id="setupBanner">
+    <h3>⚡ 2-Minute Setup — Do This Once</h3>
+    <ol>
+      <li>Go to <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → Sign up free (no credit card)</li>
+      <li>Click your avatar → <strong>API Keys</strong> → copy your <strong>X-Master-Key</strong></li>
+      <li>Paste it below and click Save — you're done!</li>
+    </ol>
+    <div class="inp-row">
+      <input type="password" id="apiKeyInput" placeholder="Paste your X-Master-Key here…"/>
+      <button class="btn-save-key" onclick="saveApiKey()">Save Key</button>
+    </div>
+    <div class="key-saved" id="keySaved">✓ Key saved! You can now register and log in.</div>
+  </div>
+
+  <!-- Auth Card -->
+  <div class="auth-card">
+    <div class="auth-logo">Date<span class="t">Track</span> <span style="font-size:.9rem;font-weight:400;color:var(--muted)">Pro</span></div>
+    <div class="auth-sub">Private events — synced across all your devices.</div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <div class="af"><label>Username</label><input type="text" id="loginUser" placeholder="your username" autocomplete="username"/></div>
+      <div class="af"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/></div>
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In →</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerForm" style="display:none">
+      <div class="af"><label>Full Name</label><input type="text" id="regName" placeholder="Jane Doe"/></div>
+      <div class="af"><label>Username</label><input type="text" id="regUser" placeholder="janedoe (letters, numbers, _ only)" autocomplete="username"/></div>
+      <div class="af">
+        <label>Password</label>
+        <input type="password" id="regPass" placeholder="min. 6 characters" autocomplete="new-password" oninput="checkStrength(this.value)"/>
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      </div>
+      <div class="af"><label>Confirm Password</label><input type="password" id="regPass2" placeholder="repeat password"/></div>
+      <button class="btn-primary" id="regBtn" onclick="doRegister()">Create Account →</button>
+    </div>
+
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     APP PAGE
+═══════════════════════════════════════════════ -->
+<div id="appPage" class="page">
+  <div class="topbar">
+    <div class="topbar-logo">Date<span class="t">Track</span></div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="avatar" id="avatarInitial">?</div>
+        <span id="topbarName">User</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="welcome-banner">
+      <div class="wb-left">
+        <h2 id="welcomeMsg">Welcome back!</h2>
+        <p>Your events are private, secure, and always here when you return.</p>
+      </div>
+      <div class="today-pill">
+        <div class="tl">Today</div>
+        <div class="td" id="todayStr"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Total Events</div></div>
+      <div class="stat"><div class="n" id="stUpcoming">0</div><div class="l">Upcoming</div></div>
+      <div class="stat"><div class="n" id="stMonth">0</div><div class="l">This Month</div></div>
+    </div>
+
+    <div class="form-card">
+      <h3><em>+</em> Add New Event</h3>
+      <div class="fg-grid">
+        <div class="fg2"><label>Event Name *</label><input type="text" id="iName" placeholder="Birthday, Anniversary, Meeting…"/></div>
+        <div class="fg2"><label>Date *</label><input type="date" id="iDate"/></div>
+        <div class="fg2">
+          <label>Category</label>
+          <select id="iCat">
+            <option value="personal">Personal</option>
+            <option value="work">Work</option>
+            <option value="birthday">Birthday</option>
+            <option value="anniversary">Anniversary</option>
+            <option value="holiday">Holiday</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="fg2"><label>Color Tag</label><div class="color-row" id="colorPicker"></div></div>
+        <div class="fg2 fg-full"><label>Note (optional)</label><textarea id="iNote" placeholder="Any details…"></textarea></div>
+        <div class="fg-full"><button class="btn-submit" id="addBtn" onclick="addEvent()">Add Event</button></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍  Search events…" oninput="renderEvents()"/>
+      <select id="filterCat" onchange="renderEvents()">
+        <option value="">All Categories</option>
+        <option value="personal">Personal</option>
+        <option value="work">Work</option>
+        <option value="birthday">Birthday</option>
+        <option value="anniversary">Anniversary</option>
+        <option value="holiday">Holiday</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="sort-toggle" id="sortBtn" onclick="toggleSort()">⇅ Soonest First</button>
+    </div>
+
+    <div class="section-hd">Your Events</div>
+    <div id="eventsWrap"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────
+//  HOW IT WORKS (no server needed!):
+//
+//  JSONBin stores ONE bin per user.
+//  Bin structure: { users: {...}, events: {...} }
+//
+//  "users" bin  → registry of all accounts
+//  Each user's events stored in their own bin
+//
+//  Everything is stored in ONE master bin:
+//  {
+//    users: {
+//      "alice": { name:"Alice", passHash:"...", binId:"..." },
+//    },
+//    events: {
+//      "alice": [ {id, name, date, ...}, ... ]
+//    }
+//  }
+// ─────────────────────────────────────────────────────
+
+const BASE = 'https://api.jsonbin.io/v3';
+const COLORS = ['#7c6af7','#f06a9b','#3ecf8e','#f5c842','#60adf5','#f0956a','#a78bfa','#34d399'];
+
+let API_KEY      = '';
+let MASTER_BIN   = '';   // bin ID that holds all data
+let DB           = { users:{}, events:{} }; // full in-memory DB
+let currentUser  = null; // { username, name }
+let events       = [];
+let sortAsc      = true;
+let selectedColor = COLORS[0];
+
+// ── localStorage helpers ─────────────────────────────
+function lsGet(k){ try{return localStorage.getItem(k)}catch{return null} }
+function lsSet(k,v){ try{localStorage.setItem(k,v)}catch{} }
+function lsDel(k){ try{localStorage.removeItem(k)}catch{} }
+
+// ── JSONBin API helpers ──────────────────────────────
+async function jbGet(binId){
+  const r = await fetch(`${BASE}/b/${binId}/latest`,{
+    headers:{'X-Master-Key':API_KEY,'X-Bin-Meta':false}
+  });
+  if(!r.ok) throw new Error('GET failed '+r.status);
+  return r.json();
+}
+
+async function jbUpdate(binId, data){
+  const r = await fetch(`${BASE}/b/${binId}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json','X-Master-Key':API_KEY},
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error('PUT failed '+r.status);
+  return r.json();
+}
+
+async function jbCreate(data, name='DateTrack DB'){
+  const r = await fetch(`${BASE}/b`,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Master-Key':API_KEY,
+      'X-Bin-Name':name,
+      'X-Bin-Private':'true'
+    },
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error('CREATE failed '+r.status);
+  return r.json();
+}
+
+// ── Hash (simple, non-crypto — good enough for this) ─
+function hash(str){
+  let h=5381;
+  for(let i=0;i<str.length;i++) h=((h<<5)+h)^str.charCodeAt(i);
+  return (h>>>0).toString(16);
+}
+
+function uid(){
+  return Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+}
+function toISO(d){return d.toISOString().split('T')[0];}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── TOAST ────────────────────────────────────────────
+let _tt;
+function toast(msg,type='ok'){
+  const e=document.getElementById('toast');
+  e.textContent=msg; e.className=''; e.classList.add('show',type);
+  clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove('show'),2800);
+}
+
+// ─────────────────────────────────────────────────────
+//  SETUP — API KEY
+// ─────────────────────────────────────────────────────
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(!key || !key.startsWith('$2')){
+    showMsg('That doesn\'t look like a valid key. It should start with $2…','error');
+    return;
+  }
+  API_KEY = key;
+  lsSet('dt_apikey', key);
+  document.getElementById('keySaved').style.display='block';
+  document.getElementById('apiKeyInput').value='';
+  showMsg('✓ Key saved! You can now register and sign in.','success');
+}
+
+// ─────────────────────────────────────────────────────
+//  INIT — load from localStorage
+// ─────────────────────────────────────────────────────
+async function init(){
+  API_KEY    = lsGet('dt_apikey') || '';
+  MASTER_BIN = lsGet('dt_binid')  || '';
+
+  // Hide setup banner if key already saved
+  if(API_KEY){
+    document.getElementById('setupBanner').style.display='none';
+  }
+
+  // Try to restore session
+  const sess = lsGet('dt_session');
+  if(sess && API_KEY && MASTER_BIN){
+    try{
+      const s = JSON.parse(sess);
+      showMsg('Restoring your session…','info');
+      await loadDB();
+      if(DB.users[s.username]){
+        currentUser = s;
+        events = DB.events[s.username] || [];
+        enterApp();
+        return;
+      }
+    }catch(e){
+      console.warn('Session restore failed',e);
+    }
+    lsDel('dt_session');
+  }
+}
+
+// ─────────────────────────────────────────────────────
+//  DATABASE — load / save
+// ─────────────────────────────────────────────────────
+async function loadDB(){
+  if(!MASTER_BIN){
+    // First time — create the master bin
+    const res = await jbCreate({users:{},events:{}},'DateTrack Master DB');
+    MASTER_BIN = res.metadata.id;
+    lsSet('dt_binid', MASTER_BIN);
+    DB = {users:{},events:{}};
+  } else {
+    DB = await jbGet(MASTER_BIN);
+    if(!DB.users)  DB.users  = {};
+    if(!DB.events) DB.events = {};
+  }
+}
+
+async function saveDB(){
+  await jbUpdate(MASTER_BIN, DB);
+}
+
+// ─────────────────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────────────────
+function switchTab(tab){
+  const isL = tab==='login';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',isL?i===0:i===1));
+  document.getElementById('loginForm').style.display   = isL?'':'none';
+  document.getElementById('registerForm').style.display= isL?'none':'';
+  clearMsg();
+}
+
+function showMsg(msg,type){
+  const e=document.getElementById('authMsg');
+  e.textContent=msg; e.className='auth-msg '+type;
+}
+function clearMsg(){document.getElementById('authMsg').className='auth-msg';}
+
+async function doRegister(){
+  if(!API_KEY){ showMsg('Please save your JSONBin API key first (see the setup box above).','error'); return; }
+
+  const name  = document.getElementById('regName').value.trim();
+  const user  = document.getElementById('regUser').value.trim().toLowerCase();
+  const pass  = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+
+  if(!name||!user||!pass)    return showMsg('Please fill in all fields.','error');
+  if(!/^[a-z0-9_]{3,20}$/.test(user)) return showMsg('Username: 3–20 characters, only letters, numbers, underscores.','error');
+  if(pass.length<6)          return showMsg('Password must be at least 6 characters.','error');
+  if(pass!==pass2)           return showMsg('Passwords do not match.','error');
+
+  setBtn('regBtn','Creating…',true);
+  showMsg('Setting up your account…','info');
+
+  try{
+    await loadDB();
+    if(DB.users[user]){ setBtn('regBtn','Create Account →',false); return showMsg('Username already taken. Try a different one.','error'); }
+
+    DB.users[user]  = { name, passHash: hash(user+pass) };
+    DB.events[user] = [];
+    await saveDB();
+
+    currentUser = {username:user, name};
+    events = [];
+    lsSet('dt_session', JSON.stringify(currentUser));
+    showMsg('Account created! Welcome 🎉','success');
+    setTimeout(enterApp, 800);
+  }catch(e){
+    setBtn('regBtn','Create Account →',false);
+    showMsg('Error: '+e.message+'. Check your API key and try again.','error');
+    console.error(e);
+  }
+}
+
+async function doLogin(){
+  if(!API_KEY){ showMsg('Please save your JSONBin API key first (see the setup box above).','error'); return; }
+
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if(!user||!pass) return showMsg('Please enter your username and password.','error');
+
+  setBtn('loginBtn','Signing in…',true);
+  showMsg('Checking credentials…','info');
+
+  try{
+    await loadDB();
+    const record = DB.users[user];
+    if(!record || record.passHash !== hash(user+pass)){
+      setBtn('loginBtn','Sign In →',false);
+      return showMsg('Incorrect username or password.','error');
+    }
+    currentUser = {username:user, name:record.name};
+    events = DB.events[user] || [];
+    lsSet('dt_session', JSON.stringify(currentUser));
+    enterApp();
+  }catch(e){
+    setBtn('loginBtn','Sign In →',false);
+    showMsg('Error: '+e.message,'error');
+    console.error(e);
+  }
+}
+
+function doLogout(){
+  currentUser=null; events=[]; DB={users:{},events:{}};
+  lsDel('dt_session');
+  document.getElementById('appPage').classList.remove('show');
+  document.getElementById('authPage').classList.add('show');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  setBtn('loginBtn','Sign In →',false);
+  clearMsg();
+}
+
+function setBtn(id,txt,dis){
+  const b=document.getElementById(id);
+  if(!b)return; b.textContent=txt; b.disabled=dis;
+}
+
+function checkStrength(val){
+  let s=0;
+  if(val.length>=6)s++; if(val.length>=10)s++;
+  if(/[A-Z]/.test(val))s++; if(/[0-9!@#$%^&*]/.test(val))s++;
+  const f=document.getElementById('strengthFill');
+  f.style.width=(s/4*100)+'%';
+  f.style.background=['#f06a6a','#f5c842','#60adf5','#3ecf8e'][s-1]||'transparent';
+}
+
+// ─────────────────────────────────────────────────────
+//  ENTER APP
+// ─────────────────────────────────────────────────────
+function enterApp(){
+  document.getElementById('authPage').classList.remove('show');
+  document.getElementById('appPage').classList.add('show');
+
+  const name = currentUser.name;
+  document.getElementById('topbarName').textContent    = name;
+  document.getElementById('avatarInitial').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('welcomeMsg').textContent    = 'Welcome back, '+name.split(' ')[0]+'!';
+  document.getElementById('todayStr').textContent      = new Date().toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric'});
+  document.getElementById('iDate').value = toISO(new Date());
+  buildColorPicker();
+  renderEvents();
+}
+
+// ─────────────────────────────────────────────────────
+//  EVENTS — ADD
+// ─────────────────────────────────────────────────────
+async function addEvent(){
+  const name = document.getElementById('iName').value.trim();
+  const date = document.getElementById('iDate').value;
+  if(!name||!date){ toast('Please fill in event name and date.','err'); return; }
+
+  const btn=document.getElementById('addBtn');
+  btn.disabled=true; btn.textContent='Saving…';
+
+  try{
+    const ev = {
+      id:uid(), name, date,
+      category: document.getElementById('iCat').value,
+      color: selectedColor,
+      note: document.getElementById('iNote').value.trim(),
+      created: Date.now()
+    };
+    events.unshift(ev);
+    DB.events[currentUser.username] = events;
+    await saveDB();
+    document.getElementById('iName').value='';
+    document.getElementById('iNote').value='';
+    renderEvents();
+    toast('Event saved!');
+  }catch(e){
+    toast('Save failed — check your connection.','err');
+    console.error(e);
+    events.shift(); // rollback
+  }
+  btn.disabled=false; btn.textContent='Add Event';
+}
+
+// ─────────────────────────────────────────────────────
+//  EVENTS — DELETE
+// ─────────────────────────────────────────────────────
+async function deleteEvent(id){
+  const prev = [...events];
+  events = events.filter(e=>e.id!==id);
+  renderEvents();
+  try{
+    DB.events[currentUser.username]=events;
+    await saveDB();
+    toast('Deleted.');
+  }catch(e){
+    toast('Delete failed.','err');
+    events=prev; renderEvents();
+  }
+}
+
+// ─────────────────────────────────────────────────────
+//  EVENTS — RENDER
+// ─────────────────────────────────────────────────────
+function toggleSort(){
+  sortAsc=!sortAsc;
+  document.getElementById('sortBtn').textContent='⇅ '+(sortAsc?'Soonest First':'Latest First');
+  renderEvents();
+}
+
+function renderEvents(){
+  const search = (document.getElementById('searchInput')?.value||'').toLowerCase();
+  const cat    = document.getElementById('filterCat')?.value||'';
+  const today  = toISO(new Date());
+  const month  = today.slice(0,7);
+
+  let list = events.filter(e=>
+    (e.name.toLowerCase().includes(search)||(e.note||'').toLowerCase().includes(search)) &&
+    (!cat||e.category===cat)
+  );
+  list.sort((a,b)=>sortAsc ? new Date(a.date)-new Date(b.date) : new Date(b.date)-new Date(a.date));
+
+  document.getElementById('stTotal').textContent    = events.length;
+  document.getElementById('stUpcoming').textContent = events.filter(e=>e.date>=today).length;
+  document.getElementById('stMonth').textContent    = events.filter(e=>e.date.startsWith(month)).length;
+
+  const wrap=document.getElementById('eventsWrap');
+  if(!list.length){
+    wrap.innerHTML=`<div class="empty"><div class="ei">📅</div><p>No events yet — add your first one above!</p></div>`;
+    return;
+  }
+  wrap.innerHTML=`<div class="events">${list.map(ev=>{
+    const d=new Date(ev.date+'T00:00:00');
+    const diff=Math.round((new Date(ev.date+'T00:00:00')-new Date(today+'T00:00:00'))/86400000);
+    const cls=diff>0?'upcoming':diff===0?'today':'past';
+    const sub=diff>0?'days away':diff===0?'🎉 Today!':'days ago';
+    const num=diff===0?'🎊':Math.abs(diff);
+    return `
+    <div class="ev-card" style="--ec:${ev.color}">
+      <div class="ev-date-box">
+        <div class="ev-day">${d.getDate()}</div>
+        <div class="ev-mon">${d.toLocaleString('en-US',{month:'short'}).toUpperCase()}</div>
+      </div>
+      <div class="ev-info">
+        <div class="ev-title">${esc(ev.name)}</div>
+        <div class="ev-meta">
+          <span class="ev-cat">${ev.category}</span>
+          <span class="ev-year">${d.getFullYear()}</span>
+        </div>
+        ${ev.note?`<div class="ev-note">${esc(ev.note)}</div>`:''}
+      </div>
+      <div class="ev-cd">
+        <div class="ev-cd-num ${cls}">${num}</div>
+        <div class="ev-cd-sub">${sub}</div>
+      </div>
+      <button class="btn-del" onclick="deleteEvent('${ev.id}')">✕</button>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ─────────────────────────────────────────────────────
+//  COLOR PICKER
+// ─────────────────────────────────────────────────────
+function buildColorPicker(){
+  const cp=document.getElementById('colorPicker');
+  if(!cp)return; cp.innerHTML='';
+  COLORS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='cdot'+(c===selectedColor?' active':'');
+    d.style.background=c;
+    d.onclick=()=>{selectedColor=c;document.querySelectorAll('.cdot').forEach(x=>x.classList.remove('active'));d.classList.add('active');};
+    cp.appendChild(d);
+  });
+}
+
+// Enter key support
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter') return;
+  const rf=document.getElementById('registerForm');
+  if(rf&&rf.style.display!=='none') doRegister(); else doLogin();
+});
+
+// ─────────────────────────────────────────────────────
+//  START
+// ─────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
