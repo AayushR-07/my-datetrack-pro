@@ -509,7 +509,7 @@ const BASE = 'https://api.jsonbin.io/v3';
 const COLORS = ['#7c6af7','#f06a9b','#3ecf8e','#f5c842','#60adf5','#f0956a','#a78bfa','#34d399'];
 
 let API_KEY      = '';
-let MASTER_BIN   = '';   // bin ID that holds all data
+let MASTER_BIN   = '69a2f0e243b1c97be9a68477'; // ← hardcoded: same DB for every device
 let DB           = { users:{}, events:{} }; // full in-memory DB
 let currentUser  = null; // { username, name }
 let events       = [];
@@ -596,20 +596,19 @@ function saveApiKey(){
 //  INIT — load from localStorage
 // ─────────────────────────────────────────────────────
 async function init(){
-  API_KEY    = lsGet('dt_apikey') || '';
-  MASTER_BIN = lsGet('dt_binid')  || '';
+  API_KEY = lsGet('dt_apikey') || '';
 
   // Hide setup banner if key already saved
   if(API_KEY){
     document.getElementById('setupBanner').style.display='none';
   }
 
-  // Try to restore session
+  // Try to restore session on this device
   const sess = lsGet('dt_session');
-  if(sess && API_KEY && MASTER_BIN){
+  if(sess && API_KEY){
     try{
       const s = JSON.parse(sess);
-      showMsg('Restoring your session…','info');
+      showMsg('Restoring your sessionu2026','info');
       await loadDB();
       if(DB.users[s.username]){
         currentUser = s;
@@ -628,17 +627,10 @@ async function init(){
 //  DATABASE — load / save
 // ─────────────────────────────────────────────────────
 async function loadDB(){
-  if(!MASTER_BIN){
-    // First time — create the master bin
-    const res = await jbCreate({users:{},events:{}},'DateTrack Master DB');
-    MASTER_BIN = res.metadata.id;
-    lsSet('dt_binid', MASTER_BIN);
-    DB = {users:{},events:{}};
-  } else {
-    DB = await jbGet(MASTER_BIN);
-    if(!DB.users)  DB.users  = {};
-    if(!DB.events) DB.events = {};
-  }
+  // Always use hardcoded bin — same DB on every device automatically
+  DB = await jbGet(MASTER_BIN);
+  if(!DB.users)  DB.users  = {};
+  if(!DB.events) DB.events = {};
 }
 
 async function saveDB(){
